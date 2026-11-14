@@ -13,3 +13,47 @@
 .language-switch button.active { background: var(--primary); color: white; }
 footer a { color: var(--primary); text-decoration: underline; }
 @media(max-width:680px) { header { height: auto; min-height: 76px; gap: 8px; flex-wrap: wrap; padding: 12px 0; } .brand { font-size: 21px; } .header-right { margin-left: auto; } .local-badge { display: none; } .language-switch button { min-width: 32px; } }
+
+/* Keep the upload and queue together on wide screens, but put settings between
+   them on phones so processing remains reachable with a long file list. */
+.workspace { grid-template-areas: "upload settings" "queue settings"; row-gap: 0; }
+.upload-panel { grid-area: upload; min-width: 0; padding: 24px 24px 0; background: white; border: 1px solid var(--border); border-bottom: 0; border-radius: 18px 18px 0 0; }
+.files-panel { grid-area: queue; min-width: 0; border-top: 0; border-radius: 0 0 18px 18px; }
+.settings { grid-area: settings; align-self: start; }
+.queue-heading { margin-top: 0; }
+@media (max-width: 900px) {
+  .upload-panel { padding: 18px 18px 0; }
+}
+@media (max-width: 680px) {
+  .shell { padding: 0 14px; }
+  .workspace { grid-template-areas: "upload" "settings" "queue"; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .upload-panel, .files-panel, .settings { padding: 16px; border: 1px solid var(--border); border-radius: 16px; }
+  .upload-panel { padding: 0; overflow: hidden; }
+  .dropzone { border: 0; border-radius: 0; padding: 24px 16px; }
+  .dropzone .primary { min-width: 180px; }
+  .header-right { width: 100%; justify-content: flex-end; gap: 8px; }
+  .intro { padding: 24px 0; }
+  h1 { font-size: clamp(26px, 8vw, 34px); line-height: 1.25; }
+  .tabs { max-width: 100%; }
+  .tabs button { min-height: 44px; padding: 8px 12px; }
+  .filters { gap: 8px; }
+  .filters select { width: 112px; }
+  input:not([type=checkbox]):not([type=range]), select { font-size: 16px; }
+  input[type=checkbox] { width: 20px; height: 20px; }
+  .file-card { min-width: 0; }
+  .file-info, .output>div { min-width: 0; overflow-wrap: anywhere; }
+  .file-info small { display: block; }
+  .filename { width: 100%; }
+  .output { align-items: flex-start; flex-wrap: wrap; }
+  .output .text-button { margin-left: auto; min-height: 44px; }
+  summary { min-height: 44px; display: flex; align-items: center; }
+  .trust-row { flex-wrap: wrap; gap: 8px 18px; text-align: center; }
+  dialog { max-height: 90dvh; overflow: auto; }
+  .preview img { max-height: 55dvh; }
+}
+@media (max-width: 360px) {
+  .shell { padding: 0 10px; }
+  .brand { font-size: 19px; }
+  .filters { flex-wrap: wrap; }
+  .filters select { width: 100%; }
+}

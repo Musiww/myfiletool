@@ -59,4 +59,15 @@ test('mobile layout does not overflow and privacy dialog closes', async ({ page 
   await expect(page.locator('dialog')).toBeVisible();
   await page.getByRole('button', { name: 'Close preview' }).click();
   await expect(page.locator('dialog')).not.toBeVisible();
+  if (test.info().project.name === 'mobile') {
+    await page.getByLabel('Choose files', { exact: true }).setInputFiles('tests/fixtures/sample.png');
+    const settings = await page.locator('.settings').boundingBox();
+    const queue = await page.locator('.files-panel').boundingBox();
+    expect(settings && queue && settings.y < queue.y).toBeTruthy();
+    await page.getByRole('button', { name: 'Start processing' }).click();
+    await expect(page.locator('.status.done')).toHaveCount(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.setViewportSize({ width: 320, height: 700 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
 });
