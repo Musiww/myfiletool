@@ -1,0 +1,23 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Require reviewed dependency lock
+        run: test -f package-lock.json || (echo "Run npm install locally and commit package-lock.json first."; exit 1)
+      - run: npm ci
+      - run: npm test
+      - run: npm run fixtures
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+

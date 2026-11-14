@@ -1,0 +1,13 @@
+node_modules/
+dist/
+public/pdf-assets/
+local-inputs/
+outputs/
+*.log
+.env*
+test-results/
+playwright-report/
+
+.npm-cache/
+.validation/
+DESIGN.private.md

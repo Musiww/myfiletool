@@ -1,0 +1,16 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {parsePages,fit,safeName,uniqueNames,identify,rejectAnimation,abort} from '../src/core.ts';
+import {makeZip,crc32} from '../src/zip.ts';
+import {writeFile,mkdir} from 'node:fs/promises';
+test('page ranges deduplicate and sort',()=>assert.deepEqual(parsePages('5,1,3-5',8),[1,3,4,5]));
+test('all pages and bounded work',()=>{assert.deepEqual(parsePages('',3),[1,2,3]);assert.throws(()=>parsePages('',101));});
+test('reject malformed or unbounded page input',()=>{for(const text of ['0','-1','3-1','1,','a','1-9999999999','9'])assert.throws(()=>parsePages(text,8));});
+test('fit preserves aspect ratio and never enlarges',()=>{assert.deepEqual(fit(4000,2000,1200,1000),{width:1200,height:600});assert.deepEqual(fit(100,50,1200,1000),{width:100,height:50});assert.throws(()=>fit(10,10,0,10));});
+test('safe filenames preserve Chinese and remove paths',()=>{assert.equal(safeName('证件.jpg'),'证件');assert.ok(!safeName('../../test:*.png').includes('/'));assert.equal(safeName('.jpg'),'file');});
+test('ZIP filenames cannot overwrite duplicates',()=>assert.deepEqual(uniqueNames(['x.jpg','x.jpg','x-2.jpg','X.JPG']),['x.jpg','x-2.jpg','x-2-2.jpg','X-3.JPG']));
+test('validate signatures instead of trusting file extensions',async()=>{assert.equal(await identify(new File(['%PDF-1.7'],'a.jpg')),'pdf');await assert.rejects(identify(new File(['hello'],'fake.png')));await assert.rejects(identify(new File([],'empty.jpg')));});
+test('reject animated WebP and APNG',async()=>{const webp=new Uint8Array(24);webp.set(new TextEncoder().encode('RIFF'),0);webp.set(new TextEncoder().encode('WEBPANIM'),8);await assert.rejects(rejectAnimation(new File([webp],'a.webp')));const png=new Uint8Array(24);png[0]=137;png.set(new TextEncoder().encode('acTL'),12);await assert.rejects(rejectAnimation(new File([png],'a.png')));});
+test('cancellation is explicit',()=>{const c=new AbortController();abort(c.signal);c.abort();assert.throws(()=>abort(c.signal),{name:'AbortError'});});
+test('CRC32 matches a published check vector',()=>assert.equal(crc32(new TextEncoder().encode('123456789')),0xcbf43926));
+test('ZIP keeps UTF-8 names, bytes and duplicate entries',async()=>{const zip=await makeZip([{name:'图片.png',blob:new Blob(['first']),width:1,height:1},{name:'图片.png',blob:new Blob(['second']),width:1,height:1}]);const b=Buffer.from(await zip.arrayBuffer());assert.equal(b.readUInt32LE(0),0x04034b50);assert.equal(b.readUInt16LE(6),0x800);assert.equal(b.readUInt16LE(b.length-12),2);await mkdir('test-results',{recursive:true});await writeFile('test-results/zip-test.zip',b);});
